@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { NietLogo } from "@/components/NietLogo";
@@ -16,8 +16,11 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
+  const { user } = Route.useRouteContext();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const isSuperAdmin = user?.email === "ecellniet@niet.co.in";
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -38,6 +41,14 @@ function AuthedLayout() {
                 <span className="hidden sm:inline">Dashboard</span>
               </Link>
             </Button>
+            {isSuperAdmin && (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/settings">
+                  <Settings className="size-4" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Link>
+              </Button>
+            )}
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="size-4" />
               <span className="hidden sm:inline">Log out</span>

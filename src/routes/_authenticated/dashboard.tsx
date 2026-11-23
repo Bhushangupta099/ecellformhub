@@ -9,6 +9,7 @@ import {
   FilePlus2,
   Loader2,
   Pencil,
+  Settings,
   Share2,
   Trash2,
 } from "lucide-react";
@@ -48,13 +49,15 @@ function Dashboard() {
   const [search, setSearch] = useState("");
   const [toDelete, setToDelete] = useState<FormRow | null>(null);
 
+  const isSuperAdmin = user.email === "ecellniet@niet.co.in";
+  const displayName = user.user_metadata?.["name"] || (isSuperAdmin ? "Technical Head" : "User");
+
   const formsQuery = useQuery({
-    queryKey: ["forms", user.id],
+    queryKey: ["forms"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data as unknown as FormRow[];
@@ -163,24 +166,36 @@ function Dashboard() {
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8">
+      {/* HEADER SECTION */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold sm:text-3xl">
-            Welcome{user.user_metadata?.["name"] ? `, ${user.user_metadata["name"]}` : ""}
+            Welcome, {displayName}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>
         </div>
-        <Button onClick={() => createForm.mutate()} disabled={createForm.isPending}>
-          {createForm.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <FilePlus2 className="size-4" />
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && (
+            <Button asChild variant="outline">
+              <Link to="/settings" className="flex items-center gap-2">
+                <Settings className="size-4" />
+                <span>Settings</span>
+              </Link>
+            </Button>
           )}
-          Create new form
-        </Button>
+          <Button onClick={() => createForm.mutate()} disabled={createForm.isPending}>
+            {createForm.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <FilePlus2 className="size-4" />
+            )}
+            Create new form
+          </Button>
+        </div>
       </div>
 
-      <div className="mt-6">
+      {/* SEARCH BAR */}
+      <div className="mt-8">
         <Input
           placeholder="Search your forms…"
           value={search}
@@ -189,6 +204,7 @@ function Dashboard() {
         />
       </div>
 
+      {/* FORMS GRID */}
       {formsQuery.isLoading ? (
         <div className="text-muted-foreground flex items-center gap-2 py-16">
           <Loader2 className="size-4 animate-spin" /> Loading your forms…
@@ -197,8 +213,7 @@ function Dashboard() {
         <div className="bg-card mt-8 rounded-xl border border-dashed p-12 text-center">
           <h2 className="text-lg font-semibold">No forms yet</h2>
           <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">
-            Create your first form to start collecting responses. Nothing here is shared with
-            anyone else.
+            Create your first form to start collecting responses.
           </p>
           <Button className="mt-5" onClick={() => createForm.mutate()}>
             <FilePlus2 className="size-4" /> Create new form
@@ -267,6 +282,7 @@ function Dashboard() {
         </div>
       )}
 
+      {/* DELETE FORM CONFIRMATION */}
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

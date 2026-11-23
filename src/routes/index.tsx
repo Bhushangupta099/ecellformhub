@@ -36,16 +36,9 @@ function Landing() {
               <Link to="/dashboard">Dashboard</Link>
             </Button>
           ) : (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/auth">Log in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link to="/auth" search={{ mode: "signup" }}>
-                  Get started
-                </Link>
-              </Button>
-            </>
+            <Button asChild size="sm">
+              <Link to="/auth">Log in</Link>
+            </Button>
           )}
         </div>
       </header>
@@ -61,12 +54,9 @@ function Landing() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to="/auth" search={{ mode: "signup" }}>
-                Create your first form <ArrowRight className="ml-1 size-4" />
+              <Link to="/auth">
+                Go to Dashboard <ArrowRight className="ml-1 size-4" />
               </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/auth">I already have an account</Link>
             </Button>
           </div>
         </section>

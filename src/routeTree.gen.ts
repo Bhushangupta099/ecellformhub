@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
 import { Route as AuthenticatedFormsFormIdEditRouteImport } from './routes/_authenticated/forms.$formId.edit'
 import { Route as AuthenticatedFormsFormIdResponsesRouteImport } from './routes/_authenticated/forms.$formId.responses'
@@ -34,6 +35,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const FormSlugRoute = FormSlugRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/form/$slug': typeof FormSlugRoute
   '/forms/$formId/edit': typeof AuthenticatedFormsFormIdEditRoute
   '/forms/$formId/responses': typeof AuthenticatedFormsFormIdResponsesRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/form/$slug': typeof FormSlugRoute
   '/forms/$formId/edit': typeof AuthenticatedFormsFormIdEditRoute
   '/forms/$formId/responses': typeof AuthenticatedFormsFormIdResponsesRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/form/$slug': typeof FormSlugRoute
   '/_authenticated/forms/$formId/edit': typeof AuthenticatedFormsFormIdEditRoute
   '/_authenticated/forms/$formId/responses': typeof AuthenticatedFormsFormIdResponsesRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/settings'
     | '/form/$slug'
     | '/forms/$formId/edit'
     | '/forms/$formId/responses'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/settings'
     | '/form/$slug'
     | '/forms/$formId/edit'
     | '/forms/$formId/responses'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/settings'
     | '/form/$slug'
     | '/_authenticated/forms/$formId/edit'
     | '/_authenticated/forms/$formId/responses'
@@ -145,6 +157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/form/$slug': {
       id: '/form/$slug'
       path: '/form/$slug'
@@ -171,12 +190,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedFormsFormIdEditRoute: typeof AuthenticatedFormsFormIdEditRoute
   AuthenticatedFormsFormIdResponsesRoute: typeof AuthenticatedFormsFormIdResponsesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedFormsFormIdEditRoute: AuthenticatedFormsFormIdEditRoute,
   AuthenticatedFormsFormIdResponsesRoute:
     AuthenticatedFormsFormIdResponsesRoute,

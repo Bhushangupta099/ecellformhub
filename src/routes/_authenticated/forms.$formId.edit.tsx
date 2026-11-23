@@ -50,7 +50,6 @@ function Builder() {
         .from("forms")
         .select("*")
         .eq("id", formId)
-        .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
       if (!f) throw new Error("Form not found");

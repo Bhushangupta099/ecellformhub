@@ -69,7 +69,6 @@ function Responses() {
         .from("forms")
         .select("*")
         .eq("id", formId)
-        .eq("user_id", user.id)
         .maybeSingle();
       if (fErr) throw fErr;
       const { data: qs, error: qErr } = await supabase

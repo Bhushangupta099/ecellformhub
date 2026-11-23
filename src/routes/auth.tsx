@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,26 +9,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NietLogo } from "@/components/NietLogo";
 
-const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
-
 export const Route = createFileRoute("/auth")({
-  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Sign in — NIET FormHub" },
-      { name: "description", content: "Log in or create your NIET FormHub account to build forms." },
+      { name: "description", content: "Log in to your NIET FormHub account to build forms." },
       { property: "og:title", content: "Sign in — NIET FormHub" },
-      { property: "og:description", content: "Log in or create your NIET FormHub account." },
+      { property: "og:description", content: "Log in to your NIET FormHub account." },
     ],
   }),
   component: AuthPage,
 });
 
 function AuthPage() {
-  const search = Route.useSearch();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">(search.mode ?? "login");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -38,32 +31,12 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { name: name || email.split("@")[0] },
-          },
-        });
-        if (error) throw error;
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          toast.success("Account created");
-          navigate({ to: "/dashboard" });
-        } else {
-          toast.success("Check your email to confirm your account");
-          setMode("login");
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Welcome back");
-        navigate({ to: "/dashboard" });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Welcome back");
+      navigate({ to: "/dashboard" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Invalid login credentials");
     } finally {
       setBusy(false);
     }
@@ -82,28 +55,13 @@ function AuthPage() {
             <div className="pb-1">
               <NietLogo logoHeightClass="h-14 sm:h-16" />
             </div>
-            <CardTitle className="text-2xl">
-              {mode === "login" ? "Log in" : "Create your account"}
-            </CardTitle>
+            <CardTitle className="text-2xl">Log in</CardTitle>
             <CardDescription>
-              {mode === "login"
-                ? "Access your private NIET FormHub dashboard."
-                : "Your own dashboard, starting empty."}
+              Access your private NIET FormHub dashboard.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-4">
-              {mode === "signup" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                  />
-                </div>
-              )}
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -121,27 +79,16 @@ function AuthPage() {
                   id="password"
                   type="password"
                   required
-                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder="Enter your password"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
                 {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {mode === "login" ? "Log in" : "Sign up"}
+                Log in
               </Button>
             </form>
-            <p className="text-muted-foreground mt-4 text-center text-sm">
-              {mode === "login" ? "No account yet?" : "Already registered?"}{" "}
-              <button
-                type="button"
-                className="text-primary font-medium"
-                onClick={() => setMode(mode === "login" ? "signup" : "login")}
-              >
-                {mode === "login" ? "Sign up" : "Log in"}
-              </button>
-            </p>
           </CardContent>
         </Card>
       </div>
