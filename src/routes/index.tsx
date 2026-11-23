@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FileSpreadsheet, ShieldCheck, Zap, Sparkles } from "lucide-react";
+import { ArrowRight, FileSpreadsheet, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { NietLogo } from "@/components/NietLogo";
@@ -45,10 +45,9 @@ function Landing() {
 
       <main className="mx-auto max-w-6xl px-5 pb-24">
         <section className="py-14 sm:py-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary">
-            <span className="flex size-2 rounded-full bg-primary animate-pulse" />
-            <Sparkles className="size-3.5" /> Official Event & Registration Engine — NIET E-CELL
-          </div>
+          <p className="text-sm font-semibold tracking-wide text-primary">
+            Official Event & Registration Engine — NIET E-CELL
+          </p>
 
           <h1 className="mt-5 max-w-3xl text-4xl leading-tight font-extrabold tracking-tight sm:text-6xl">
             Smart Forms. <br className="hidden sm:inline" />
