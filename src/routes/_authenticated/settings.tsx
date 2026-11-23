@@ -83,6 +83,8 @@ function SettingsPage() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [isOtpMode, setIsOtpMode] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
@@ -151,78 +153,98 @@ function SettingsPage() {
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
-      if (!isRecoveryMode) {
-        if (!oldPassword) {
-          toast.error("Please enter your current old password.");
-          return;
-        }
-        if (oldPassword === newPassword) {
-          toast.error("New password must be different from old password.");
-          return;
-        }
-      }
-      if (newPassword.length < 6) {
-        toast.error("New password must be at least 6 characters long.");
+
+    if (isOtpMode) {
+      if (!enteredOtp || !enteredOtp.trim()) {
+        toast.error("Please enter the 6-digit OTP.");
         return;
       }
-      if (newPassword !== confirmPassword) {
-        toast.error("New password and confirm password do not match.");
+    } else if (!isRecoveryMode) {
+      if (!oldPassword) {
+        toast.error("Please enter your current old password.");
         return;
       }
+      if (oldPassword === newPassword) {
+        toast.error("New password must be different from old password.");
+        return;
+      }
+    }
 
-      setUpdatingPassword(true);
-      try {
-        if (!isRecoveryMode) {
-          const { error: verifyError } = await supabase.auth.signInWithPassword({
-            email: user.email!,
-            password: oldPassword,
-          });
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirm password do not match.");
+      return;
+    }
 
-            if (verifyError) {
-              throw new Error("Incorrect old password. Please verify and try again.");
-            }
-          }
+    setUpdatingPassword(true);
+    try {
+      if (isOtpMode) {
+        // 1. Verify dynamic OTP with Supabase
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          email: user.email!,
+          token: enteredOtp.trim(),
+          type: "recovery",
+        });
 
-          const { error: updateError } = await supabase.auth.updateUser({
-            password: newPassword,
-          });
-
-          if (updateError) throw updateError;
-
-          toast.success(
-            isRecoveryMode
-              ? "Password reset successfully! You can now log in with your new password."
-              : "Password changed successfully!"
-          );
-          setOldPassword("");
-          setNewPassword("");
-          setConfirmPassword("");
-          setIsRecoveryMode(false);
-          if (typeof window !== "undefined" && window.location.hash) {
-            window.history.replaceState(null, "", window.location.pathname);
-          }
-        } catch (err: any) {
-          toast.error(err.message || "Failed to change password");
-        } finally {
+        if (otpError) {
+          toast.error("Wrong OTP");
           setUpdatingPassword(false);
+          return;
+        }
+      } else if (!isRecoveryMode) {
+        // Normal old password verification
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+          email: user.email!,
+          password: oldPassword,
+        });
+
+        if (verifyError) {
+          throw new Error("Incorrect old password. Please verify and try again.");
         }
       }
 
-  async function handleForgotPassword() {
-        if (!user.email) return;
-        setSendingReset(true);
-        try {
-          const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-            redirectTo: `${window.location.origin}/settings`,
-          });
-          if (error) throw error;
-          toast.success(`Password reset email sent to ${user.email}. Check your inbox!`);
-        } catch (err: any) {
-          toast.error(err.message || "Failed to send reset email");
-        } finally {
-          setSendingReset(false);
-        }
+      // Update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast.success("Password changed successfully!");
+      setOldPassword("");
+      setEnteredOtp("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsOtpMode(false);
+      setIsRecoveryMode(false);
+      if (typeof window !== "undefined" && window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname);
       }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setUpdatingPassword(false);
+    }
+  }
+
+  async function handleSendOtp() {
+    if (!user.email) return;
+    setSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+      if (error) throw error;
+      toast.success(`A 6-digit OTP has been sent to ${user.email}`);
+      setIsOtpMode(true);
+      setOldPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send OTP");
+    } finally {
+      setSendingReset(false);
+    }
+  }
 
       return (
         <main className="mx-auto max-w-5xl px-5 py-8">
@@ -365,18 +387,54 @@ function SettingsPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handlePasswordChange} className="space-y-4">
-                        {isRecoveryMode ? (
-                          <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 text-xs text-primary leading-relaxed">
-                            🔑 <strong>Password Reset Mode:</strong> You arrived via a password reset email link. Enter your new password below (no old password required).
-                          </div>
-                      ) : (
+                    {isRecoveryMode ? (
+                      <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 text-xs text-primary leading-relaxed">
+                        🔑 <strong>Password Reset Mode:</strong> You arrived via a password reset email link. Enter your new password below (no old password required).
+                      </div>
+                    ) : isOtpMode ? (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="otp-input">Verification OTP</Label>
+                          <span className="text-[11px] text-muted-foreground truncate max-w-[200px]">Sent to {user.email}</span>
+                        </div>
+                        <Input
+                          id="otp-input"
+                          type="text"
+                          maxLength={6}
+                          placeholder="Enter 6-digit OTP"
+                          required
+                          value={enteredOtp}
+                          onChange={(e) => setEnteredOtp(e.target.value)}
+                        />
+                        <div className="flex items-center justify-between pt-0.5">
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={sendingReset}
+                            className="text-xs text-primary hover:underline font-medium cursor-pointer"
+                          >
+                            {sendingReset ? "Resending OTP…" : "Resend OTP"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsOtpMode(false);
+                              setEnteredOtp("");
+                            }}
+                            className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
+                          >
+                            Use Old Password
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
                       <div className="space-y-1.5">
                         <Label htmlFor="old-password">Old Password</Label>
                         <Input
                           id="old-password"
                           type="password"
                           placeholder="Enter current password"
-                          required={!isRecoveryMode}
+                          required
                           value={oldPassword}
                           onChange={(e) => setOldPassword(e.target.value)}
                         />
@@ -384,15 +442,15 @@ function SettingsPage() {
                         <div className="text-right pt-0.5">
                           <button
                             type="button"
-                            onClick={handleForgotPassword}
+                            onClick={handleSendOtp}
                             disabled={sendingReset}
                             className="text-xs text-primary hover:underline font-medium cursor-pointer"
                           >
-                            {sendingReset ? "Sending reset email…" : "Forgot password?"}
+                            {sendingReset ? "Sending OTP…" : "Forgot password?"}
                           </button>
                         </div>
                       </div>
-                )}
+                    )}
 
                       {/* 2. New Password */}
                       <div className="space-y-1.5">
