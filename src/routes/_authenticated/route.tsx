@@ -35,6 +35,11 @@ function AuthedLayout() {
           <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
             <NietLogo to="/dashboard" logoHeightClass="h-12 sm:h-14" />
             <div className="flex items-center gap-1">
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/">
+                    <span className="hidden sm:inline">Home</span>
+                  </Link>
+                </Button>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/dashboard">
                   <LayoutDashboard className="size-4" />
