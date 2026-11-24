@@ -27,8 +27,24 @@ function Landing() {
   const { user, loading } = useAuth();
 
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* SEAMLESS BACKGROUND VIDEO LOOP */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="h-full w-full object-cover"
+        >
+          <source src="/rocket-bg.mp4" type="video/mp4" />
+        </video>
+        {/* Soft Dark Vignette Overlay for maximum contrast and readability */}
+        <div className="absolute inset-0 bg-black/55 backdrop-brightness-90" />
+      </div>
+
+      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         <NietLogo logoHeightClass="h-12 sm:h-16" />
         <div className="flex items-center gap-2">
           {!loading && user ? (
@@ -43,24 +59,24 @@ function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 pb-24">
+      <main className="relative z-10 mx-auto max-w-6xl px-5 pb-24">
         <section className="py-14 sm:py-20">
-          <p className="text-sm font-semibold tracking-wide text-primary">
+          <p className="text-sm font-semibold tracking-wide text-primary drop-shadow-sm">
             Official Event & Registration Engine — NIET E-CELL
           </p>
 
-          <h1 className="mt-5 max-w-3xl text-4xl leading-tight font-extrabold tracking-tight sm:text-6xl">
+          <h1 className="mt-5 max-w-3xl text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl drop-shadow-md">
             Smart Forms. <br className="hidden sm:inline" />
             <span className="text-primary">Instant Response.</span> <br className="hidden sm:inline" />
             Zero Clutter.
           </h1>
 
-          <p className="text-muted-foreground mt-5 max-w-2xl text-base sm:text-lg leading-relaxed">
-            Built exclusively for <strong>NIET Entrepreneurship Cell</strong>. Powering hackathons, speaker conclaves, startup pitches, and campus recruitments with instant public forms and one-click data intelligence.
+          <p className="mt-5 max-w-2xl text-base sm:text-lg leading-relaxed text-zinc-300 drop-shadow-sm">
+            Built exclusively for <strong className="text-white">NIET Entrepreneurship Cell</strong>. Powering hackathons, speaker conclaves, startup pitches, and campus recruitments with instant public forms and one-click data intelligence.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="shadow-lg shadow-primary/20 hover:shadow-primary/30">
+            <Button asChild size="lg" className="shadow-lg shadow-primary/30 hover:shadow-primary/50">
               <Link to={user ? "/dashboard" : "/auth"}>
                 {user ? "Go to Dashboard" : "Access Team Portal"} <ArrowRight className="ml-1.5 size-4" />
               </Link>
@@ -86,12 +102,15 @@ function Landing() {
               body: "Enterprise-grade database isolation and team management built specifically for NIET E-CELL coordinators and leads.",
             },
           ].map((f) => (
-            <div key={f.title} className="bg-card rounded-xl border p-6 transition-all hover:border-primary/40 hover:shadow-sm">
-              <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div
+              key={f.title}
+              className="bg-card/75 backdrop-blur-md rounded-xl border border-white/10 p-6 transition-all hover:border-primary/50 hover:bg-card/90 hover:shadow-lg"
+            >
+              <div className="flex size-11 items-center justify-center rounded-lg bg-primary/20 text-primary">
                 <f.icon className="size-5" />
               </div>
-              <h2 className="mt-4 text-lg font-semibold">{f.title}</h2>
-              <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{f.body}</p>
+              <h2 className="mt-4 text-lg font-semibold text-white">{f.title}</h2>
+              <p className="text-zinc-400 mt-2 text-sm leading-relaxed">{f.body}</p>
             </div>
           ))}
         </section>
