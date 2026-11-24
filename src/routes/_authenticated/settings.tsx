@@ -83,23 +83,8 @@ function SettingsPage() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [enteredOtp, setEnteredOtp] = useState("");
-  const [isOtpMode, setIsOtpMode] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
-  const [sendingReset, setSendingReset] = useState(false);
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
-      setIsRecoveryMode(true);
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsRecoveryMode(true);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  const [forgotMode, setForgotMode] = useState(false);
 
   const usersQuery = useQuery({
     queryKey: ["admin-users"],

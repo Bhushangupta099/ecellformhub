@@ -147,7 +147,7 @@ function RootComponent() {
         }}
         className="fixed inset-0 z-0 h-full w-full object-cover pointer-events-none"
       >
-        <source src="/rocket-bg.webm" type="video/webm" />
+        <source src="/rocket_stars_smooth_60fps.webm" type="video/webm" />
       </video>
       {/* Dark tint overlay so text stays readable */}
       <div className="fixed inset-0 z-0 bg-black/40 pointer-events-none" />
