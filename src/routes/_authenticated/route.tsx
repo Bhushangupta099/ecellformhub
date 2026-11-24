@@ -30,33 +30,33 @@ function AuthedLayout() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-card/80 sticky top-0 z-30 border-b backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <NietLogo to="/dashboard" logoHeightClass="h-12 sm:h-14" />
-          <div className="flex items-center gap-1">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/dashboard">
-                <LayoutDashboard className="size-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-            </Button>
-            {isSuperAdmin && (
+      <div className="min-h-screen bg-transparent">
+        <header className="bg-card/80 sticky top-0 z-30 border-b backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+            <NietLogo to="/dashboard" logoHeightClass="h-12 sm:h-14" />
+            <div className="flex items-center gap-1">
               <Button asChild variant="ghost" size="sm">
-                <Link to="/settings">
-                  <Settings className="size-4" />
-                  <span className="hidden sm:inline">Settings</span>
+                <Link to="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
                 </Link>
               </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="size-4" />
-              <span className="hidden sm:inline">Log out</span>
-            </Button>
+              {isSuperAdmin && (
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/settings">
+                    <Settings className="size-4" />
+                    <span className="hidden sm:inline">Settings</span>
+                  </Link>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="size-4" />
+                <span className="hidden sm:inline">Log out</span>
+              </Button>
+            </div>
           </div>
-        </div>
-      </header>
-      <Outlet />
-    </div>
-  );
+        </header>
+        <Outlet />
+      </div>
+      );
 }

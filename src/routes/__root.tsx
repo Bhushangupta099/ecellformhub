@@ -131,8 +131,31 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Global background video — plays on every page */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        ref={(el) => {
+          if (el) {
+            el.defaultMuted = true;
+            el.muted = true;
+            el.play().catch(() => { });
+          }
+        }}
+        className="fixed inset-0 z-0 h-full w-full object-cover pointer-events-none"
+      >
+        <source src="/rocket-bg.webm" type="video/webm" />
+      </video>
+      {/* Dark tint overlay so text stays readable */}
+      <div className="fixed inset-0 z-0 bg-black/40 pointer-events-none" />
+
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="relative z-10 min-h-screen">
+        <Outlet />
+      </div>
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );

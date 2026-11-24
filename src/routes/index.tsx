@@ -28,22 +28,6 @@ function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* SEAMLESS BACKGROUND VIDEO LOOP */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="h-full w-full object-cover"
-        >
-          <source src="/rocket-bg.mp4" type="video/mp4" />
-        </video>
-        {/* Soft Dark Vignette Overlay for maximum contrast and readability */}
-        <div className="absolute inset-0 bg-black/55 backdrop-brightness-90" />
-      </div>
-
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         <NietLogo logoHeightClass="h-12 sm:h-16" />
         <div className="flex items-center gap-2">
