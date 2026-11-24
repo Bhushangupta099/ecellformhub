@@ -182,7 +182,19 @@ function PublicForm() {
   }
 
   return (
+  <div className="relative min-h-screen">
+    {/* Background video – same as landing page */}
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="absolute inset-0 w-full h-full object-cover -z-10"
+    >
+      <source src="/rocket-bg.mp4" type="video/mp4" />
+    </video>
     <Shell>
+
       <Card className="border-primary/40 border-t-4">
         <CardHeader>
           <CardTitle className="text-2xl">{form.title}</CardTitle>
@@ -261,12 +273,13 @@ function PublicForm() {
         </div>
       </form>
     </Shell>
+  </div>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <header className="border-b bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-3">
           <NietLogo to="/" logoHeightClass="h-12 sm:h-14" />

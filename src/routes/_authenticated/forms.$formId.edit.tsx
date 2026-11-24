@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+// framer-motion import removed – using Tailwind CSS animations instead
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -183,7 +184,7 @@ function Builder() {
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/form/${form.slug}` : "";
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-8">
+      <main className="mx-auto max-w-4xl px-5 py-8 animate-fade-in-up">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
           <Link to="/dashboard">
