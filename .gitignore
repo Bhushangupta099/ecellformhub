@@ -24,7 +24,6 @@ build
 # Environment Variables & Secrets
 .env
 .env.*
-!.env.example
 *.local
 .dev.vars
 
