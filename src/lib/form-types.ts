@@ -42,6 +42,9 @@ export interface FormSettings {
   collectEmail?: boolean;
   allowEditing?: boolean;
   scaleMax?: number;
+  approval_status?: "approved" | "pending" | "rejected" | "draft";
+  creator_email?: string;
+  creator_name?: string;
 }
 
 export interface Question {

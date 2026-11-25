@@ -114,6 +114,21 @@ function PublicForm() {
     );
   }
 
+  if (settings.approval_status === "pending") {
+    return (
+      <Shell>
+        <Card>
+          <CardContent className="py-16 text-center">
+            <h1 className="text-xl font-semibold">{form.title}</h1>
+            <p className="text-muted-foreground mt-2 text-sm">
+              This form is pending admin approval and cannot accept responses yet.
+            </p>
+          </CardContent>
+        </Card>
+      </Shell>
+    );
+  }
+
   if (!form.accepting_responses) {
     return (
       <Shell>
