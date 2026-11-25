@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Download,
   Eye,
+  FileText,
   Loader2,
   RefreshCw,
   Trash2,
@@ -39,6 +40,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { exportResponsesToExcel, type ResponseRecord } from "@/lib/excel";
+import { exportResponsesToPdf } from "@/lib/pdf";
 import type { FormRow, Question } from "@/lib/form-types";
 
 export const Route = createFileRoute("/_authenticated/forms/$formId/responses")({
@@ -71,6 +73,10 @@ function Responses() {
         .eq("id", formId)
         .maybeSingle();
       if (fErr) throw fErr;
+      if (!f) throw new Error("Form not found or you do not have permission to access it");
+      if (f.user_id !== user.id) {
+        throw new Error("You do not have permission to view responses for this form");
+      }
       const { data: qs, error: qErr } = await supabase
         .from("questions")
         .select("*")
@@ -148,6 +154,22 @@ function Responses() {
     );
   }
 
+  if (query.isError || !query.data?.form) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center p-8">
+        <h2 className="text-xl font-bold text-destructive">Access Denied</h2>
+        <p className="text-muted-foreground max-w-md text-sm">
+          {query.error instanceof Error
+            ? query.error.message
+            : "You do not have permission to access responses for this form."}
+        </p>
+        <Button asChild variant="outline">
+          <Link to="/dashboard">Back to Dashboard</Link>
+        </Button>
+      </div>
+    );
+  }
+
   const form = query.data?.form;
 
   return (
@@ -177,6 +199,20 @@ function Responses() {
             onClick={() => qc.invalidateQueries({ queryKey: ["responses", formId] })}
           >
             <RefreshCw className="size-4" /> Refresh
+          </Button>
+          <Button
+            size="sm"
+            disabled={!rows.length}
+            onClick={() =>
+              exportResponsesToPdf(
+                form?.title ?? "form",
+                form?.description,
+                query.data?.questions ?? [],
+                rows,
+              )
+            }
+          >
+            <FileText className="size-4" /> Download PDF
           </Button>
           <Button
             size="sm"

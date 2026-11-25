@@ -52,7 +52,10 @@ function Builder() {
         .eq("id", formId)
         .maybeSingle();
       if (error) throw error;
-      if (!f) throw new Error("Form not found");
+      if (!f) throw new Error("Form not found or you do not have permission to access it");
+      if (f.user_id !== user.id) {
+        throw new Error("You do not have permission to edit this form");
+      }
       const { data: qs, error: qErr } = await supabase
         .from("questions")
         .select("*")
@@ -70,10 +73,26 @@ function Builder() {
     }
   }, [query.data]);
 
-  if (query.isLoading || !form) {
+  if (query.isLoading) {
     return (
       <div className="text-muted-foreground flex items-center gap-2 p-12">
         <Loader2 className="size-4 animate-spin" /> Loading form…
+      </div>
+    );
+  }
+
+  if (query.isError || !form) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center p-8">
+        <h2 className="text-xl font-bold text-destructive">Access Denied</h2>
+        <p className="text-muted-foreground max-w-md text-sm">
+          {query.error instanceof Error
+            ? query.error.message
+            : "You do not have permission to access or edit this form."}
+        </p>
+        <Button asChild variant="outline">
+          <Link to="/dashboard">Back to Dashboard</Link>
+        </Button>
       </div>
     );
   }
