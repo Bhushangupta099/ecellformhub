@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, Loader2, Plus, Save, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, Loader2, Plus, Save, SendHorizonal, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,9 @@ function Builder() {
   const [questions, setQuestions] = useState<Draft[]>([]);
   const [removed, setRemoved] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const isSuperAdmin = user.email === "ecellniet@niet.co.in";
 
   const query = useQuery({
     queryKey: ["form", formId, user.id],
@@ -53,7 +56,11 @@ function Builder() {
         .eq("id", formId)
         .maybeSingle();
       if (error) throw error;
-      if (!f) throw new Error("Form not found");
+      if (!f) throw new Error("Form not found or you do not have permission to access it");
+      // Allow admin to inspect any form; regular users can only access their own
+      if (f.user_id !== user.id && !isSuperAdmin) {
+        throw new Error("You do not have permission to edit this form");
+      }
       const { data: qs, error: qErr } = await supabase
         .from("questions")
         .select("*")
@@ -71,10 +78,26 @@ function Builder() {
     }
   }, [query.data]);
 
-  if (query.isLoading || !form) {
+  if (query.isLoading) {
     return (
       <div className="text-muted-foreground flex items-center gap-2 p-12">
         <Loader2 className="size-4 animate-spin" /> Loading form…
+      </div>
+    );
+  }
+
+  if (query.isError || !form) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center p-8">
+        <h2 className="text-xl font-bold text-destructive">Access Denied</h2>
+        <p className="text-muted-foreground max-w-md text-sm">
+          {query.error instanceof Error
+            ? query.error.message
+            : "You do not have permission to access or edit this form."}
+        </p>
+        <Button asChild variant="outline">
+          <Link to="/dashboard">Back to Dashboard</Link>
+        </Button>
       </div>
     );
   }
@@ -182,6 +205,39 @@ function Builder() {
   }
 
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/form/${form.slug}` : "";
+  const isPendingApproval = settings.approval_status === "pending";
+  const isDraft = !settings.approval_status || settings.approval_status === "draft";
+
+  async function submitForApproval() {
+    if (!form) return;
+    setSubmitting(true);
+    try {
+      // First save the current form state
+      await save();
+      // Then mark as pending approval
+      const { error } = await supabase
+        .from("forms")
+        .update({
+          accepting_responses: false,
+          settings: {
+            ...(form.settings ?? {}),
+            approval_status: "pending",
+          } as never,
+        })
+        .eq("id", form.id);
+      if (error) throw error;
+      setForm((f) =>
+        f ? { ...f, accepting_responses: false, settings: { ...(f.settings ?? {}), approval_status: "pending" } } : f
+      );
+      await qc.invalidateQueries({ queryKey: ["form", formId] });
+      await qc.invalidateQueries({ queryKey: ["forms"] });
+      toast.success("Form submitted for admin approval! You'll be notified once it's reviewed.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not submit for approval");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
       <main className="mx-auto max-w-4xl px-5 py-8 animate-fade-in-up">
@@ -192,16 +248,44 @@ function Builder() {
           </Link>
         </Button>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              navigator.clipboard.writeText(publicUrl);
-              toast.success("Share link copied");
-            }}
-          >
-            <Share2 className="size-4" /> Copy link
-          </Button>
+          {/* Copy link / status button — only for non-admin forms */}
+          {!isSuperAdmin && isDraft && (
+            /* Draft: show Submit for Approval button */
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={submitForApproval}
+              disabled={submitting || saving}
+              className="text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
+            >
+              {submitting ? <Loader2 className="size-4 animate-spin" /> : <SendHorizonal className="size-4" />}
+              Submit for Approval
+            </Button>
+          )}
+          {!isSuperAdmin && isPendingApproval && (
+            /* Pending: show disabled amber indicator */
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              className="text-amber-400 border-amber-500/30 bg-amber-500/5 cursor-not-allowed opacity-80"
+            >
+              <Clock className="size-4" /> Approval Pending
+            </Button>
+          )}
+          {(isSuperAdmin || settings.approval_status === "approved") && (
+            /* Approved or admin: show Copy link */
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(publicUrl);
+                toast.success("Share link copied");
+              }}
+            >
+              <Share2 className="size-4" /> Copy link
+            </Button>
+          )}
           <Button asChild variant="outline" size="sm">
             <a href={`/form/${form.slug}`} target="_blank" rel="noreferrer">
               <ExternalLink className="size-4" /> Preview
@@ -212,12 +296,31 @@ function Builder() {
               Responses
             </Link>
           </Button>
-          <Button size="sm" onClick={save} disabled={saving}>
+          <Button size="sm" onClick={save} disabled={saving || submitting}>
             {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             Save
           </Button>
         </div>
       </div>
+
+      {!isSuperAdmin && isDraft && (
+        <div className="mt-5 rounded-lg border border-sky-500/30 bg-sky-500/10 p-3.5 text-xs text-sky-300 flex items-center gap-2.5">
+          <SendHorizonal className="size-4 shrink-0 text-sky-400" />
+          <span>
+            <strong>Draft:</strong> This form is not yet submitted for approval. Build your form and click{" "}
+            <strong>"Submit for Approval"</strong> when ready. The admin will review and approve it before it goes live.
+          </span>
+        </div>
+      )}
+
+      {!isSuperAdmin && isPendingApproval && (
+        <div className="mt-5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-300 flex items-center gap-2.5">
+          <Clock className="size-4 shrink-0 text-amber-400" />
+          <span>
+            <strong>Approval Pending:</strong> This form was submitted to Admin (<code>ecellniet@niet.co.in</code>) for approval. It cannot be shared or collect responses until approved.
+          </span>
+        </div>
+      )}
 
       <Tabs defaultValue="build" className="mt-6">
         <TabsList>
