@@ -118,7 +118,10 @@ function Responses() {
   });
 
   const visibleQuestions = useMemo(
-    () => (query.data?.questions ?? []).filter((q) => q.question_type !== "section"),
+    () =>
+      (query.data?.questions ?? []).filter(
+        (q) => q.question_type !== "section" && q.question_type !== "url_display",
+      ),
     [query.data],
   );
 

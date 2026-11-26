@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, Link as LinkIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,7 +81,9 @@ function PublicForm() {
 
   const { form, questions } = query.data;
   const settings: FormSettings = form.settings ?? {};
-  const answerable = questions.filter((q) => q.question_type !== "section");
+  const answerable = questions.filter(
+    (q) => q.question_type !== "section" && q.question_type !== "url_display",
+  );
   const filled = answerable.filter((q) => (values[q.id] ?? "").trim() || files[q.id]).length;
 
   if (done) {
@@ -242,15 +244,59 @@ function PublicForm() {
           </Card>
         )}
 
-        {questions.map((q) =>
-          q.question_type === "section" ? (
-            <div key={q.id} className="pt-4">
-              <h2 className="text-lg font-semibold">{q.question_text}</h2>
-              {q.description && (
-                <p className="text-muted-foreground text-sm">{q.description}</p>
-              )}
-            </div>
-          ) : (
+        {questions.map((q) => {
+          if (q.question_type === "section") {
+            return (
+              <div key={q.id} className="pt-4">
+                <h2 className="text-lg font-semibold">{q.question_text}</h2>
+                {q.description && (
+                  <p className="text-muted-foreground text-sm">{q.description}</p>
+                )}
+              </div>
+            );
+          }
+
+          if (q.question_type === "url_display") {
+            const rawUrl = q.options?.[0]?.trim() || "";
+            const href = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+              ? rawUrl
+              : `https://${rawUrl}`;
+
+            return (
+              <Card key={q.id} className="border-primary/20 bg-card/80">
+                <CardContent className="space-y-3 pt-6">
+                  {q.question_text && (
+                    <h3 className="font-semibold text-base text-foreground">
+                      {q.question_text}
+                    </h3>
+                  )}
+                  {q.description && (
+                    <p className="text-muted-foreground text-sm whitespace-pre-line">
+                      {q.description}
+                    </p>
+                  )}
+                  {rawUrl && (
+                    <div className="pt-1">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="border-primary/30 text-primary hover:bg-primary/10 gap-2 max-w-full overflow-hidden"
+                      >
+                        <a href={href} target="_blank" rel="noopener noreferrer">
+                          <LinkIcon className="size-4 shrink-0" />
+                          <span className="truncate">{rawUrl}</span>
+                          <ExternalLink className="size-3.5 shrink-0 opacity-70" />
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return (
             <Card key={q.id}>
               <CardContent className="space-y-3 pt-6">
                 <div>
@@ -277,8 +323,8 @@ function PublicForm() {
                 />
               </CardContent>
             </Card>
-          ),
-        )}
+          );
+        })}
 
         <div className="flex justify-end pb-12">
           <Button type="submit" size="lg" disabled={submitting}>

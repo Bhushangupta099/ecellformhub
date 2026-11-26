@@ -2,7 +2,9 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  ExternalLink,
   GripVertical,
+  Link as LinkIcon,
   Plus,
   Trash2,
   X,
@@ -58,7 +60,13 @@ export function QuestionCard({
             <Input
               value={question.question_text}
               onChange={(e) => onChange({ question_text: e.target.value })}
-              placeholder={question.question_type === "section" ? "Section title" : "Question"}
+              placeholder={
+                question.question_type === "section"
+                  ? "Section title"
+                  : question.question_type === "url_display"
+                  ? "Title / Heading (e.g. Rulebook, Event Details)"
+                  : "Question"
+              }
               className="text-base font-medium"
             />
             <Select
@@ -91,9 +99,44 @@ export function QuestionCard({
         <Textarea
           value={question.description}
           onChange={(e) => onChange({ description: e.target.value })}
-          placeholder="Help text (optional)"
+          placeholder={
+            question.question_type === "url_display"
+              ? "Short description or instructions for the link (optional)"
+              : "Help text (optional)"
+          }
           rows={2}
         />
+
+        {question.question_type === "url_display" && (
+          <div className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <LinkIcon className="size-3.5 text-primary" /> Target URL / Link (Clickable)
+            </Label>
+            <Input
+              value={question.options?.[0] ?? ""}
+              onChange={(e) => onChange({ options: [e.target.value] })}
+              placeholder="https://example.com/rulebook.pdf or drive link"
+              className="text-sm font-mono"
+            />
+            {question.options?.[0] && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                Preview:{" "}
+                <a
+                  href={
+                    question.options[0].startsWith("http")
+                      ? question.options[0]
+                      : `https://${question.options[0]}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary underline flex items-center gap-1 hover:text-primary/80"
+                >
+                  {question.options[0]} <ExternalLink className="size-3" />
+                </a>
+              </p>
+            )}
+          </div>
+        )}
 
         {hasOptions && (
           <div className="space-y-2">
@@ -157,7 +200,7 @@ export function QuestionCard({
             </Button>
           </div>
           <div className="flex items-center gap-3">
-            {question.question_type !== "section" && (
+            {question.question_type !== "section" && question.question_type !== "url_display" && (
               <div className="flex items-center gap-2">
                 <Label htmlFor={`req-${question.id}`} className="text-sm">
                   Required

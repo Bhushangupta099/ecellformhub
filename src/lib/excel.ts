@@ -13,7 +13,9 @@ export function exportResponsesToExcel(
   questions: Question[],
   responses: ResponseRecord[],
 ) {
-  const visible = questions.filter((q) => q.question_type !== "section");
+  const visible = questions.filter(
+    (q) => q.question_type !== "section" && q.question_type !== "url_display",
+  );
   const rows = responses.map((r, i) => {
     const row: Record<string, string | number> = {
       "Response ID": r.id,

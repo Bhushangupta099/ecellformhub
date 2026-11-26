@@ -20,7 +20,9 @@ export function exportResponsesToPdf(
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 36; // 0.5 inch margins
 
-  const visibleQuestions = questions.filter((q) => q.question_type !== "section");
+  const visibleQuestions = questions.filter(
+    (q) => q.question_type !== "section" && q.question_type !== "url_display",
+  );
   const downloadDateStr = new Date().toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "medium",

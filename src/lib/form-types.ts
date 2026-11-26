@@ -13,6 +13,7 @@ export type QuestionType =
   | "linear_scale"
   | "rating"
   | "yes_no"
+  | "url_display"
   | "section";
 
 export const QUESTION_TYPES: { value: QuestionType; label: string; group: string }[] = [
@@ -30,6 +31,7 @@ export const QUESTION_TYPES: { value: QuestionType; label: string; group: string
   { value: "email", label: "Email", group: "Data" },
   { value: "phone", label: "Phone number", group: "Data" },
   { value: "file", label: "File / image upload", group: "Data" },
+  { value: "url_display", label: "Your URL / Link", group: "Layout" },
   { value: "section", label: "Section title", group: "Layout" },
 ];
 
@@ -82,7 +84,9 @@ export function makeSlug(title: string): string {
 }
 
 export function defaultQuestionText(type: QuestionType): string {
-  return type === "section" ? "Section title" : "Untitled question";
+  if (type === "section") return "Section title";
+  if (type === "url_display") return "Helpful Link / Resources";
+  return "Untitled question";
 }
 
 export function defaultOptions(type: QuestionType): string[] {
